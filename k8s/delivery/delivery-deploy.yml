@@ -15,7 +15,8 @@ spec:
     spec:
       containers:
         - name: delivery-server
-          image: metacoding/delivery:3
+          image: metacoding/delivery:1
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8084
           env:

@@ -18,4 +18,4 @@ spec:
           image: metacoding/db:1
           imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 3306
+            - containerPort: 3307

@@ -15,7 +15,8 @@ spec:
     spec:
       containers:
         - name: user-server
-          image: metacoding/user:3
+          image: metacoding/user:1
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8083
           env:

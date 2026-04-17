@@ -15,7 +15,8 @@ spec:
     spec:
       containers:
         - name: orchestrator-server
-          image: metacoding/orchestrator:3
+          image: metacoding/orchestrator:1
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8085
           env:

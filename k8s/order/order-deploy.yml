@@ -15,7 +15,8 @@ spec:
     spec:
       containers:
         - name: order-server
-          image: metacoding/order:3
+          image: metacoding/order:1
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8081
           env:

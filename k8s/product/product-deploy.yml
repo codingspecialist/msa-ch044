@@ -15,7 +15,8 @@ spec:
     spec:
       containers:
         - name: product-server
-          image: metacoding/product:3
+          image: metacoding/product:1
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8082
           env:

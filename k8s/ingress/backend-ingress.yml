@@ -15,8 +15,7 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
 spec:
   rules:
-    - host: metacoding.local
-      http:
+    - http:
         paths:
           # 로그인 · JWT 발급
           - path: /api/login
