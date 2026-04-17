@@ -22,7 +22,7 @@
 
 <h3>⓪ API 서버</h3>
 <div class="row">
-    <input id="apiBase" size="40" value="http://metacoding.local"/>
+    <input id="apiBase" size="40" value="http://localhost"/>
     <button onclick="saveApiBase()">저장</button>
     <div class="api">※ 프론트는 클러스터 외부(CDN/로컬)에서 실행. 백엔드 Ingress 주소를 지정하세요.</div>
 </div>
@@ -46,16 +46,24 @@
     <button onclick="createOrder()">주문하기</button>
 </div>
 
+<h3>③ 관리자 시뮬레이션 (배송 완료)</h3>
+<div class="row">
+    <button onclick="completeDelivery()">배송 완료 처리</button>
+    <span id="deliveryStatus" style="margin-left:12px; color:#666;"></span>
+    <div class="api">※ 주문하기 후 이 버튼을 눌러야 주문이 최종 완료됩니다.</div>
+</div>
+
 <h3>로그</h3>
 <div id="log">대기중...</div>
 
 <script>
     // ---- API Base URL (외부에서 백엔드 Ingress로 접근) ----
-    let API_BASE = localStorage.getItem('apiBase') || 'http://metacoding.local';
+    let API_BASE = localStorage.getItem('apiBase') || 'http://localhost';
 
     let token = null;
     let userId = null;
     let stomp = null;
+    let lastOrderId = null;
     const $ = id => document.getElementById(id);
     const log = msg => { $('log').textContent += '\n' + msg; };
 
@@ -119,7 +127,31 @@
         });
         if (!res.ok) { log('❌ 주문 실패'); return; }
         const order = await res.json();
+        lastOrderId = order.id;
         log('🎯 주문 생성됨: orderId=' + order.id + ' (Saga 진행 중, WebSocket 대기...)');
+        log('👉 ③번 "배송 완료 처리" 버튼을 눌러 주문을 완료하세요.');
+    }
+
+    async function completeDelivery() {
+        if (!lastOrderId) { log('먼저 주문하기를 눌러주세요'); return; }
+        const ds = $('deliveryStatus');
+        ds.textContent = '조회 중...';
+
+        const res = await fetch(API_BASE + '/api/deliveries');
+        if (!res.ok) { log('❌ 배송 목록 조회 실패'); ds.textContent = ''; return; }
+        const deliveries = await res.json();
+
+        const delivery = deliveries.find(d => d.orderId === lastOrderId && d.status === 'READY');
+        if (!delivery) {
+            log('⚠️ 완료 처리할 배송 없음 (이미 완료됐거나 재고 부족으로 취소된 주문)');
+            ds.textContent = '';
+            return;
+        }
+
+        const res2 = await fetch(API_BASE + '/api/deliveries/' + delivery.id + '/complete', { method: 'PUT' });
+        if (!res2.ok) { log('❌ 배송 완료 처리 실패'); ds.textContent = ''; return; }
+        log('🚚 배송 완료 처리됨 (deliveryId=' + delivery.id + ') → WebSocket 대기...');
+        ds.textContent = '';
     }
 </script>
 </body>
