@@ -73,6 +73,238 @@
   #scene-k8s { height: 820px; }
   #scene-msa { height: 880px; }
   #scene-tunnel { height: 700px; }
+  #scene-idem { height: 720px; }
+
+  /* ───── Tab 4: Idempotency test ───── */
+  .idem-actor {
+    position: absolute;
+    border-radius: 10px;
+    padding: 10px 12px;
+    background: #1d2f4f;
+    border: 2px solid #4da8ff;
+    box-shadow: 0 0 14px rgba(77,168,255,0.25);
+    text-align: center;
+    z-index: 5;
+  }
+  .idem-actor .title {
+    font-size: 13px; font-weight: 700; color: #e8edf5;
+    margin-bottom: 3px;
+  }
+  .idem-actor .sub {
+    font-size: 10px; color: #9bb1d6;
+  }
+  .idem-actor.orch { background:#3a2047; border-color:#c378e0; }
+  .idem-actor.product { background:#3d2f15; border-color:#fbbf24; }
+  .idem-actor.kafka { background:#2a2a1a; border-color:#ffd54a; min-width: 220px; }
+  .idem-actor.active {
+    box-shadow: 0 0 22px rgba(255,213,74,0.6);
+    transform: scale(1.03);
+    transition: all 0.25s;
+  }
+
+  .idem-check-box {
+    position: absolute;
+    background: rgba(77,168,255,0.08);
+    border: 1.5px dashed #4da8ff;
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 11px;
+    color: #c7dcff;
+    line-height: 1.5;
+    z-index: 4;
+  }
+  .idem-check-box b { color: #9cccff; }
+  .idem-check-box.hit { border-color: #34d399; background: rgba(52,211,153,0.1); color: #d8ffe9; }
+  .idem-check-box.miss { border-color: #f87171; background: rgba(248,113,113,0.1); color: #ffd6d6; }
+  .idem-check-box.dim  { opacity: 0.45; }
+
+  .idem-topic {
+    position: absolute;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid #65386e;
+    min-width: 260px;
+  }
+  .idem-topic .tname {
+    font-size: 11px; font-weight: 700; color: #c9a4e0;
+    font-family: monospace; margin-bottom: 4px;
+  }
+  .idem-topic .tqueue {
+    display: flex; gap: 4px; flex-wrap: wrap;
+    min-height: 18px;
+  }
+  .idem-topic .msg-chip {
+    background: #ffd54a; color: #3b2300;
+    font-size: 9.5px; font-weight: 700;
+    padding: 2px 6px; border-radius: 3px;
+    font-family: monospace;
+    box-shadow: 0 0 6px rgba(255,213,74,0.6);
+    animation: dotPulse 0.7s ease-out;
+  }
+  .idem-topic .msg-chip.dup {
+    background: #f87171; color: #fff;
+    box-shadow: 0 0 8px rgba(248,113,113,0.8);
+  }
+  .idem-topic.active {
+    border-color: #ffd54a;
+    box-shadow: 0 0 12px rgba(255,213,74,0.45);
+    background: rgba(255,213,74,0.12);
+  }
+  .idem-topic .tconsume-btn {
+    margin-top: 5px;
+    padding: 4px 12px;
+    background: #2a1a35;
+    color: #6a5975;
+    border: 1px solid #3d2a48;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: not-allowed;
+    font-family: inherit;
+    transition: all 0.2s;
+  }
+  .idem-topic.ready .tconsume-btn {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #fff;
+    border-color: #0a8f66;
+    cursor: pointer;
+    animation: btnPulse 1.1s infinite;
+  }
+  .idem-topic.ready .tconsume-btn:hover { filter: brightness(1.12); transform: scale(1.04); }
+
+  .idem-mode-chip {
+    position: absolute;
+    top: 8px; right: 14px;
+    padding: 5px 10px;
+    border-radius: 14px;
+    font-size: 11px; font-weight: 700;
+    border: 1px solid transparent;
+    z-index: 6;
+  }
+  .idem-mode-chip.on  { background: rgba(52,211,153,0.15); color: #34d399; border-color: #34d399; }
+  .idem-mode-chip.off { background: rgba(248,113,113,0.15); color: #f87171; border-color: #f87171; }
+
+  .idem-side-db {
+    position: absolute;
+    right: 16px; top: 370px;
+    width: 340px;
+  }
+  .idem-db-table {
+    background: rgba(0,0,0,0.35);
+    border-radius: 6px;
+    padding: 6px 8px;
+    margin-bottom: 8px;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .idem-db-table .db-table-name {
+    color: #9bb1d6; font-size: 10px;
+    text-transform: uppercase; letter-spacing: 1px;
+    margin-bottom: 5px; font-weight: 600;
+  }
+  .idem-db-table table {
+    width: 100%; border-collapse: collapse; font-size: 10.5px;
+  }
+  .idem-db-table th, .idem-db-table td {
+    padding: 3px 5px; text-align: left;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .idem-db-table th { color: #9bb1d6; font-weight: 600; font-size: 9.5px; }
+  .idem-db-table td { color: #e8edf5; font-family: monospace; }
+  .idem-db-table td.changed { background: rgba(255,213,74,0.2); animation: cellFlash 1s; }
+  .idem-db-table td.success { background: rgba(52,211,153,0.2); animation: cellFlash 1s; }
+  .idem-db-table tr.new-row td { animation: rowAppear 0.8s; }
+  .idem-db-table tr.skipped td {
+    background: rgba(148,163,255,0.12); color: #c7d0ff; font-style: italic;
+  }
+
+  .idem-counter {
+    display: inline-block;
+    padding: 2px 6px;
+    background: rgba(248,113,113,0.2);
+    color: #ffb4b4;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    margin-left: 4px;
+  }
+
+  .idem-explain {
+    margin-top: 12px;
+    padding: 10px;
+    background: rgba(77,168,255,0.08);
+    border-left: 3px solid #4da8ff;
+    border-radius: 4px;
+    font-size: 11.5px;
+    line-height: 1.6;
+    color: #d8e6ff;
+  }
+  .idem-explain b { color: #9cccff; }
+  .idem-explain code {
+    background: #0d1628; padding: 1px 5px; border-radius: 3px;
+    font-family: monospace; color: #ffd54a; font-size: 10.5px;
+  }
+
+  .btn-idem-toggle-on  { background: linear-gradient(135deg, #10b981, #059669); }
+  .btn-idem-toggle-off { background: linear-gradient(135deg, #ef4444, #dc2626); }
+  .btn-dup  { background: linear-gradient(135deg, #f97316, #c2410c); }
+  .btn-new  { background: linear-gradient(135deg, #4da8ff, #1d64a6); }
+
+  /* ───── MSA Tab: Unified "next step" button ───── */
+  .btn-next-step {
+    width: 100%;
+    padding: 14px 12px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    background: linear-gradient(135deg, #334155, #1e293b);
+    border: 1.5px solid #475569;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+    line-height: 1.45;
+    margin-bottom: 10px;
+    min-height: 60px;
+  }
+  .btn-next-step:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+  .btn-next-step.ready {
+    background: linear-gradient(135deg, #10b981, #059669);
+    border-color: #0a8f66;
+    animation: btnPulse 1.1s infinite;
+    box-shadow: 0 4px 14px rgba(16,185,129,0.35);
+  }
+  .btn-next-step.ready:hover { filter: brightness(1.1); transform: translateY(-1px); }
+  .btn-next-step.busy {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    border-color: #b45309;
+    animation: none;
+  }
+  .btn-next-step.done {
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    border-color: #4338ca;
+  }
+  .btn-next-step .step-num {
+    display: inline-block;
+    padding: 2px 7px;
+    background: rgba(0,0,0,0.35);
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 800;
+    margin-right: 6px;
+    color: #fff;
+  }
+  .btn-next-step .step-sub {
+    display: block;
+    font-size: 10.5px;
+    font-weight: 500;
+    opacity: 0.85;
+    margin-top: 4px;
+    font-family: monospace;
+  }
 
   /* ───── Tunnel tab: Host machine boundary (사용자 PC) ───── */
   .host-machine {
@@ -933,6 +1165,7 @@
 <div class="tabs" style="max-width:1560px; margin:0 auto 12px;">
   <button class="tab-btn active" data-tab="k8s">🏗 쿠버네티스 세상</button>
   <button class="tab-btn" data-tab="msa">🛒 MSA 비즈니스 흐름</button>
+  <button class="tab-btn" data-tab="idem">🔁 멱등성 테스트 (messageId)</button>
   <button class="tab-btn" data-tab="tunnel">🚇 Ingress 터널 (Minikube)</button>
 </div>
 
@@ -1365,6 +1598,12 @@
       </div>
     </div>
 
+    <!-- Unified next-step button (alternative to clicking each topic's ▶) -->
+    <button class="btn-next-step" id="m-btn-next" onclick="m_clickNext()" disabled>
+      <span id="m-btn-next-label"><span class="step-num">—</span>시나리오를 먼저 시작하세요</span>
+      <span class="step-sub" id="m-btn-next-sub">좌측 토픽의 ▶ 버튼을 눌러도 동일하게 진행됩니다</span>
+    </button>
+
     <div class="controls">
       <button class="btn btn-happy" id="m-btn-happy" onclick="m_runHappyPath()">▶ 로그인 & 주문 (Happy Path)</button>
       <button class="btn btn-fail" id="m-btn-fail" onclick="m_runFailPath()">⚠ 재고부족 (iPhone 15) → 보상</button>
@@ -1587,6 +1826,171 @@
 </div>
 </div><!-- /tab-tunnel -->
 
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<!-- Tab 4: Idempotency Test (messageId)                                -->
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<div class="tab-content" id="tab-idem">
+<div class="layout">
+  <div class="panel">
+    <div class="scene" id="scene-idem">
+      <div class="ns-label">멱등성 테스트 · <b>messageId</b>로 중복 메시지 방어 · at-least-once 재전송 시나리오</div>
+
+      <!-- Mode indicator chip -->
+      <div class="idem-mode-chip on" id="i-mode-chip">✅ 멱등성 검사 ON</div>
+
+      <!-- Group labels -->
+      <div class="group-label" style="top:34px; left:22px;">[A] Producer (Orchestrator)</div>
+      <div class="group-label" style="top:34px; left:355px;">[B] Kafka Topic</div>
+      <div class="group-label" style="top:34px; left:710px;">[C] Consumer (Product)</div>
+      <div class="group-label" style="top:360px; left:22px;">[D] 멱등성 가드 로직 (Consumer 내부)</div>
+
+      <!-- [A] Producer -->
+      <div class="idem-actor orch" id="i-producer" style="top:60px; left:30px; width:260px;">
+        <div class="title">🎼 Orchestrator</div>
+        <div class="sub">발행 : <b>product-decrease-command</b></div>
+        <div style="margin-top:8px; padding:6px; background:rgba(0,0,0,0.3); border-radius:5px; text-align:left; font-family:monospace; font-size:10px; color:#e8c7ff;">
+          { messageId: "<span id="i-next-msgid">saga-100-decrease</span>",<br/>
+          &nbsp;&nbsp;productId: 1, qty: 1 }
+        </div>
+        <div style="margin-top:6px; font-size:10px; color:#d9b4ec; font-style:italic;">
+          동일 messageId로 재전송 → Kafka at-least-once
+        </div>
+      </div>
+
+      <!-- [B] Kafka Topic -->
+      <div class="idem-topic" id="i-topic" style="top:90px; left:360px; width:300px;">
+        <div class="tname">📋 product-decrease-command</div>
+        <div class="tqueue" id="i-topic-queue"></div>
+        <button class="tconsume-btn" id="i-consume-btn" type="button">▶ 소비 대기</button>
+        <div style="margin-top:6px; font-size:9.5px; color:#9bb1d6;">
+          메시지 적재 시 🟡, 재전송은 🔴
+        </div>
+      </div>
+
+      <!-- [C] Consumer -->
+      <div class="idem-actor product" id="i-consumer" style="top:60px; left:720px; width:220px;">
+        <div class="title">📦 Product Consumer</div>
+        <div class="sub">@KafkaListener</div>
+        <div style="margin-top:6px; padding:6px; background:rgba(0,0,0,0.3); border-radius:5px; font-size:10px; font-family:monospace; color:#fde68a; text-align:left;">
+          onMessage(msg) {<br/>
+          &nbsp;&nbsp;if (이미처리?) return;<br/>
+          &nbsp;&nbsp;차감(qty);<br/>
+          &nbsp;&nbsp;기록(messageId);<br/>
+          }
+        </div>
+      </div>
+
+      <!-- [D] Idempotency guard flow -->
+      <div class="idem-check-box" id="i-step-1" style="top:400px; left:30px; width:250px;">
+        <b>① SELECT 체크</b><br/>
+        <code>SELECT 1 FROM processed_message_tb<br/>WHERE message_id = ?</code>
+        <div style="margin-top:5px; font-size:10px;">→ 이미 처리했는지 확인</div>
+      </div>
+
+      <div class="idem-check-box" id="i-step-2" style="top:400px; left:300px; width:250px;">
+        <b>② 분기 (멱등성 가드)</b><br/>
+        · HIT (존재) → <span style="color:#34d399;">skip</span> (아무것도 안 함)<br/>
+        · MISS (없음) → <span style="color:#fbbf24;">비즈니스 로직 실행</span>
+      </div>
+
+      <div class="idem-check-box" id="i-step-3" style="top:400px; left:570px; width:230px;">
+        <b>③ 같은 트랜잭션으로</b><br/>
+        <code>UPDATE product_tb<br/>SET qty = qty - ?</code><br/>
+        <code>INSERT INTO<br/>processed_message_tb</code>
+        <div style="margin-top:5px; font-size:10px; color:#9bb1d6;">→ 원자적 커밋</div>
+      </div>
+
+      <!-- Result indicator -->
+      <div class="idem-check-box" id="i-result" style="top:548px; left:30px; width:770px; min-height:48px; background:rgba(0,0,0,0.3); border-color: #3a4e75;">
+        <b>🔍 최근 처리 결과</b> <span id="i-result-text" style="font-family:monospace; color:#9bb1d6;">— (아직 소비한 메시지 없음)</span>
+      </div>
+
+      <!-- [E] DB Panel on the right side -->
+      <div class="idem-side-db" id="i-db">
+        <div class="idem-db-table">
+          <div class="db-table-name">product_tb <span style="color:#fbbf24; font-size:9px;">(비즈니스 상태)</span></div>
+          <table>
+            <thead><tr><th>id</th><th>product</th><th>quantity</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td>MacBook Pro</td><td id="i-prod-qty">10</td></tr>
+            </tbody>
+          </table>
+          <div style="margin-top:4px; font-size:10px; color:#9bb1d6;">
+            중복 차감 횟수: <span class="idem-counter" id="i-dup-count">0</span>
+          </div>
+        </div>
+
+        <div class="idem-db-table">
+          <div class="db-table-name">processed_message_tb <span style="color:#34d399; font-size:9px;">(멱등성 가드)</span></div>
+          <table>
+            <thead><tr><th>message_id</th><th>service</th><th>processed_at</th></tr></thead>
+            <tbody id="i-tb-processed"></tbody>
+          </table>
+        </div>
+
+        <div class="idem-db-table" style="background:rgba(77,168,255,0.06);">
+          <div class="db-table-name">📨 메시지 송수신 카운터</div>
+          <table>
+            <thead><tr><th>구분</th><th>값</th></tr></thead>
+            <tbody>
+              <tr><td>Kafka 적재 (Producer 발행)</td><td id="i-count-sent">0</td></tr>
+              <tr><td>Consumer 수신</td><td id="i-count-recv">0</td></tr>
+              <tr><td>실제 처리</td><td id="i-count-processed">0</td></tr>
+              <tr><td>중복 감지 → skip</td><td id="i-count-skipped">0</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <svg class="arrows" id="i-arrows"></svg>
+    </div>
+
+    <div class="legend">
+      <span><span class="dot" style="background:#ffd54a"></span>신규 메시지</span>
+      <span><span class="dot" style="background:#f87171"></span>중복 재전송</span>
+      <span><span class="dot" style="background:#34d399"></span>멱등성 HIT (skip)</span>
+      <span><span class="dot" style="background:#fbbf24"></span>비즈니스 로직 실행</span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>🔁 멱등성 시나리오</h2>
+    <div class="status-bar">
+      <div class="status-item">
+        <small>현재 모드</small>
+        <b id="i-mode-info">멱등성 ON</b>
+      </div>
+      <div class="status-item">
+        <small>큐 대기 메시지</small>
+        <b id="i-queue-count">0</b>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn btn-idem-toggle-on" id="i-btn-toggle" onclick="i_toggleMode()">🛡 멱등성 검사 ON (클릭 → OFF)</button>
+      <button class="btn btn-new" id="i-btn-new" onclick="i_sendNew()">📨 새 메시지 발행 (신규 messageId)</button>
+      <button class="btn btn-dup" id="i-btn-dup" onclick="i_sendDuplicate()">🔁 동일 메시지 재전송 (at-least-once)</button>
+      <button class="btn btn-reset" onclick="i_reset()">🔄 리셋</button>
+    </div>
+
+    <div class="idem-explain">
+      <b>💡 messageId 의 역할</b><br/>
+      • Kafka는 <b>at-least-once</b> 전달 → 네트워크 재시도·리밸런싱 시 <b>같은 메시지가 2번 이상</b> 도착할 수 있음<br/>
+      • 소비자가 <code>qty -= 1</code> 같은 "상태 변경" 로직을 그냥 돌리면 → <b>재고 중복 차감 BUG</b><br/>
+      • 해결: 메시지에 <code>messageId</code>(= 사가 단계별 고유 ID) 부여 → Consumer가 처리 직전<br/>
+      &nbsp;&nbsp;<code>processed_message_tb</code>에서 "이 messageId 처리했나?" 조회 → 있으면 <b>skip</b><br/>
+      • 비즈니스 UPDATE + processed_message INSERT 를 <b>같은 트랜잭션</b>으로 묶어야 원자적으로 동작<br/><br/>
+      <b>🧪 실험 방법</b><br/>
+      1. <b>ON 상태</b>에서 "새 메시지" → "동일 메시지 재전송" → ▶ 두 번 소비 → 재고 1번만 차감 ✅<br/>
+      2. <b>OFF 상태</b>로 토글 → 같은 순서 반복 → 재고 <span style="color:#f87171;">2번 차감되는 BUG</span> 재현 ❌
+    </div>
+
+    <h2 style="margin-top:14px;">로그</h2>
+    <div class="log" id="i-log"></div>
+  </div>
+</div>
+</div><!-- /tab-idem -->
+
 <script>
   // ══════════════════════════════════════════════════════════════════
   // Tab Switching
@@ -1602,6 +2006,7 @@
         if (btn.dataset.tab === 'k8s') drawK8sArrows();
         else if (btn.dataset.tab === 'msa') drawMsaArrows();
         else if (btn.dataset.tab === 'tunnel') drawTunnelArrows();
+        else if (btn.dataset.tab === 'idem') drawIdemArrows();
       }, 30);
     });
   });
@@ -2282,12 +2687,36 @@
   }
 
   // ── Step-by-step saga control ────────────────────────────────
+  function mSetNextBtn(state, numText, labelText, subText) {
+    const btn = document.getElementById('m-btn-next');
+    const labelEl = document.getElementById('m-btn-next-label');
+    const subEl = document.getElementById('m-btn-next-sub');
+    if (!btn) return;
+    btn.classList.remove('ready','busy','done');
+    if (state) btn.classList.add(state);
+    btn.disabled = (state !== 'ready');
+    if (labelEl) {
+      labelEl.innerHTML = `<span class="step-num">${numText}</span>${labelText}`;
+    }
+    if (subEl && subText !== undefined) subEl.textContent = subText;
+  }
+
   function mResetStepButtons() {
     document.querySelectorAll('.kafka-topic').forEach(el => {
       el.classList.remove('ready');
       const btn = el.querySelector('.tprocess-btn');
       if (btn) btn.textContent = '▶ 대기';
     });
+    // Also reset unified next-step button to disabled waiting state
+    mSetNextBtn(null, '—', '시나리오를 먼저 시작하세요', '좌측 토픽의 ▶ 버튼을 눌러도 동일하게 진행됩니다');
+  }
+
+  function m_clickNext() {
+    if (mStepBusy) return;
+    if (mStepIdx >= mStepQueue.length) return;
+    const step = mStepQueue[mStepIdx];
+    if (!step) return;
+    mAdvanceStep(step.topic);
   }
 
   function mSetupSteps(steps, onComplete) {
@@ -2303,6 +2732,7 @@
     mResetStepButtons();
     if (mStepIdx >= mStepQueue.length) {
       mSetStep('✅ 모든 단계 완료');
+      mSetNextBtn('done', '✓', '✅ 모든 단계 완료', '리셋 후 새 시나리오를 시작하세요');
       if (mStepOnComplete) {
         const cb = mStepOnComplete;
         mStepOnComplete = null;
@@ -2319,6 +2749,8 @@
     const btn = topicEl.querySelector('.tprocess-btn');
     if (btn) btn.textContent = `▶ ${mStepIdx + 1}단계`;
     mSetStep(`▶ ${mStepIdx + 1}단계 대기중: ${step.label}  (우측 ▶ 클릭)`);
+    // Enable the unified next-step button with this step's info
+    mSetNextBtn('ready', `${mStepIdx + 1}`, `▶ ${step.label}`, `Kafka: ${step.topic}`);
   }
 
   async function mAdvanceStep(topic) {
@@ -2334,6 +2766,8 @@
       const btn = topicEl.querySelector('.tprocess-btn');
       if (btn) btn.textContent = `⚙ ${mStepIdx + 1}단계 처리중`;
     }
+    // Also update unified next-step button to "busy"
+    mSetNextBtn('busy', `${mStepIdx + 1}`, `⚙ 처리중: ${step.label}`, `Kafka: ${step.topic}`);
     mSetStep(`⚙ ${mStepIdx + 1}단계 처리중: ${step.label}`);
     mStepIdx++;
     try {
@@ -2970,20 +3404,309 @@
   }
 
   // ══════════════════════════════════════════════════════════════════
+  // TAB 4 — Idempotency test (messageId)
+  // ══════════════════════════════════════════════════════════════════
+  let iIdempotencyOn = true;
+  let iBusy = false;
+  let iMsgIdCounter = 100;                // 다음에 발행할 새 messageId 시드
+  let iCurrentMsgId = `saga-${iMsgIdCounter}-decrease`;
+  let iQueue = [];                        // [{ messageId, isDup }]
+  let iProdQty = 10;
+  let iDupCharges = 0;
+  let iCountSent = 0;
+  let iCountRecv = 0;
+  let iCountProcessed = 0;
+  let iCountSkipped = 0;
+  let iProcessedSet = new Set();          // 이미 기록된 messageId (DB 역할)
+
+  function iLog(t, m) { logTo('i-log', t, m); }
+  function iSetMode(onFlag) {
+    iIdempotencyOn = onFlag;
+    const chip = document.getElementById('i-mode-chip');
+    const info = document.getElementById('i-mode-info');
+    const btn = document.getElementById('i-btn-toggle');
+    if (onFlag) {
+      chip.className = 'idem-mode-chip on';
+      chip.textContent = '✅ 멱등성 검사 ON';
+      info.textContent = '멱등성 ON (안전)';
+      btn.className = 'btn btn-idem-toggle-on';
+      btn.textContent = '🛡 멱등성 검사 ON (클릭 → OFF)';
+    } else {
+      chip.className = 'idem-mode-chip off';
+      chip.textContent = '⚠ 멱등성 검사 OFF';
+      info.textContent = '멱등성 OFF (버그)';
+      btn.className = 'btn btn-idem-toggle-off';
+      btn.textContent = '⚠ 멱등성 검사 OFF (클릭 → ON)';
+    }
+  }
+  function i_toggleMode() {
+    iSetMode(!iIdempotencyOn);
+    iLog('sys', `모드 전환: 멱등성 검사 ${iIdempotencyOn ? 'ON 🛡' : 'OFF ⚠'}`);
+  }
+
+  function iSetBusy(b) {
+    iBusy = b;
+    ['i-btn-toggle','i-btn-new','i-btn-dup'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.disabled = b;
+    });
+  }
+
+  function iUpdateCounters() {
+    document.getElementById('i-count-sent').textContent = iCountSent;
+    document.getElementById('i-count-recv').textContent = iCountRecv;
+    document.getElementById('i-count-processed').textContent = iCountProcessed;
+    document.getElementById('i-count-skipped').textContent = iCountSkipped;
+    document.getElementById('i-queue-count').textContent = iQueue.length;
+    document.getElementById('i-dup-count').textContent = iDupCharges;
+  }
+
+  function iUpdateConsumeBtn() {
+    const topic = document.getElementById('i-topic');
+    const btn = document.getElementById('i-consume-btn');
+    if (iQueue.length > 0) {
+      topic.classList.add('ready','active');
+      btn.textContent = `▶ 소비 (${iQueue.length})`;
+    } else {
+      topic.classList.remove('ready');
+      btn.textContent = '▶ 소비 대기';
+      if (iQueue.length === 0) topic.classList.remove('active');
+    }
+  }
+
+  function iEnqueue(messageId, isDup) {
+    iQueue.push({ messageId, isDup });
+    const q = document.getElementById('i-topic-queue');
+    const chip = document.createElement('div');
+    chip.className = 'msg-chip' + (isDup ? ' dup' : '');
+    chip.textContent = messageId + (isDup ? ' 🔁' : '');
+    q.appendChild(chip);
+    iCountSent++;
+    iUpdateCounters();
+    iUpdateConsumeBtn();
+    iLog('kafka', `Kafka ← [${isDup ? '🔁 중복' : '신규'}] messageId="${messageId}" 적재`);
+  }
+
+  function iResetStepHighlights() {
+    ['i-step-1','i-step-2','i-step-3'].forEach(id => {
+      const el = document.getElementById(id);
+      el.classList.remove('hit','miss','dim');
+    });
+  }
+
+  function iSetResult(text, cls) {
+    const box = document.getElementById('i-result');
+    const span = document.getElementById('i-result-text');
+    span.textContent = text;
+    box.classList.remove('hit','miss');
+    if (cls) box.classList.add(cls);
+  }
+
+  async function i_sendNew() {
+    if (iBusy) return;
+    iMsgIdCounter++;
+    iCurrentMsgId = `saga-${iMsgIdCounter}-decrease`;
+    document.getElementById('i-next-msgid').textContent = iCurrentMsgId;
+    iLog('orch', `Producer: 새 메시지 생성 → messageId="${iCurrentMsgId}"`);
+    highlight('i-producer', 'active', 700);
+    await sendPacket('scene-idem', 'i-producer', 'i-topic', 'kafka', '▶', 650);
+    iEnqueue(iCurrentMsgId, false);
+  }
+
+  async function i_sendDuplicate() {
+    if (iBusy) return;
+    // at-least-once: 직전에 발행한 messageId 를 그대로 다시 보냄
+    iLog('orch', `⚠ Producer: 동일 messageId="${iCurrentMsgId}" 재전송 (네트워크 재시도 시뮬레이션)`);
+    highlight('i-producer', 'active', 700);
+    await sendPacket('scene-idem', 'i-producer', 'i-topic', 'error', '🔁', 650);
+    iEnqueue(iCurrentMsgId, true);
+  }
+
+  async function i_consumeOne() {
+    if (iBusy || iQueue.length === 0) return;
+    iSetBusy(true);
+    iResetStepHighlights();
+
+    const msg = iQueue.shift();
+    // remove first chip from queue DOM
+    const q = document.getElementById('i-topic-queue');
+    if (q.firstChild) {
+      const chip = q.firstChild;
+      chip.style.transition = 'opacity 300ms';
+      chip.style.opacity = '0';
+      setTimeout(() => chip.remove(), 300);
+    }
+
+    iCountRecv++;
+    iUpdateCounters();
+    iLog('kafka', `Consumer ← Kafka 메시지 수신: messageId="${msg.messageId}"${msg.isDup ? ' (🔁 중복)' : ''}`);
+
+    // Fly packet from Kafka → Consumer
+    await sendPacket('scene-idem', 'i-topic', 'i-consumer', msg.isDup ? 'error' : 'kafka', '◀', 600);
+    highlight('i-consumer', 'active', 900);
+
+    if (iIdempotencyOn) {
+      // Step 1: SELECT check
+      const step1 = document.getElementById('i-step-1');
+      step1.classList.add('hit');
+      iLog('db', `Product → DB: SELECT 1 FROM processed_message_tb WHERE message_id = '${msg.messageId}'`);
+      await sleep(600);
+
+      const already = iProcessedSet.has(msg.messageId);
+
+      // Step 2: decide
+      const step2 = document.getElementById('i-step-2');
+      if (already) {
+        step2.classList.add('hit');
+        iLog('ok', `✅ 멱등성 HIT! "${msg.messageId}" 는 이미 처리됨 → skip (재고 변화 없음)`);
+        iSetResult(`✅ 멱등성 HIT — messageId="${msg.messageId}" 스킵 (재고 유지: ${iProdQty})`, 'hit');
+        // Also add a "skipped" row visually (strikethrough)
+        iAppendProcessedRow(msg.messageId, 'product', 'skipped');
+        iCountSkipped++;
+        await sleep(500);
+        // Step 3 stays dim (not executed)
+        document.getElementById('i-step-3').classList.add('dim');
+      } else {
+        step2.classList.add('miss');
+        iLog('product', `➡ MISS: "${msg.messageId}" 미처리 → 비즈니스 로직 실행`);
+        await sleep(400);
+
+        // Step 3: UPDATE + INSERT
+        const step3 = document.getElementById('i-step-3');
+        step3.classList.add('miss');
+        iProdQty--;
+        iProcessedSet.add(msg.messageId);
+        iUpdateProdQty(iProdQty, 'changed');
+        iAppendProcessedRow(msg.messageId, 'product');
+        iLog('db', `UPDATE product_tb SET quantity = ${iProdQty+1} → ${iProdQty}`);
+        iLog('db', `INSERT INTO processed_message_tb (message_id="${msg.messageId}")`);
+        iCountProcessed++;
+        iSetResult(`🆕 처리 완료 — messageId="${msg.messageId}" (재고: ${iProdQty+1} → ${iProdQty})`, 'miss');
+      }
+    } else {
+      // NO idempotency: Consumer just runs business logic blindly
+      const step1 = document.getElementById('i-step-1');
+      const step2 = document.getElementById('i-step-2');
+      step1.classList.add('dim');
+      step2.classList.add('dim');
+      iLog('err', '⚠ 멱등성 검사 OFF → 체크 없이 바로 비즈니스 로직 실행');
+      await sleep(400);
+
+      const step3 = document.getElementById('i-step-3');
+      step3.classList.add('miss');
+      iProdQty--;
+      const isDupCharge = msg.isDup; // already seen same messageId before
+      if (isDupCharge) iDupCharges++;
+      iUpdateProdQty(iProdQty, isDupCharge ? 'changed' : 'changed');
+      iLog('db', `UPDATE product_tb SET quantity = ${iProdQty+1} → ${iProdQty} ${isDupCharge ? '  ← 🔴 중복 차감!' : ''}`);
+      iCountProcessed++;
+      if (isDupCharge) {
+        iSetResult(`❌ 중복 차감 발생 — 같은 messageId="${msg.messageId}" 로 재고 또 차감 (재고: ${iProdQty+1} → ${iProdQty})`, 'miss');
+        iLog('err', `🚨 BUG: 같은 주문 1건인데 재고가 2번 차감됨 (messageId="${msg.messageId}")`);
+      } else {
+        iSetResult(`처리 완료 (가드 없음) — messageId="${msg.messageId}" (재고: ${iProdQty+1} → ${iProdQty})`, 'miss');
+      }
+    }
+
+    iUpdateCounters();
+    iUpdateConsumeBtn();
+    iSetBusy(false);
+  }
+
+  function iUpdateProdQty(v, type='changed') {
+    const el = document.getElementById('i-prod-qty');
+    el.textContent = v;
+    el.classList.remove('changed','success');
+    void el.offsetWidth;
+    el.classList.add(type);
+  }
+
+  function iAppendProcessedRow(messageId, service, extraCls) {
+    const tbody = document.getElementById('i-tb-processed');
+    const tr = document.createElement('tr');
+    tr.className = 'new-row' + (extraCls ? ' ' + extraCls : '');
+    const now = new Date().toLocaleTimeString('ko-KR', { hour12: false });
+    const mark = extraCls === 'skipped' ? ' (skip)' : '';
+    tr.innerHTML = `<td>${messageId}${mark}</td><td>${service}</td><td>${now}</td>`;
+    tbody.appendChild(tr);
+    setTimeout(() => tr.classList.remove('new-row'), 800);
+  }
+
+  function i_reset() {
+    iQueue = [];
+    iProdQty = 10;
+    iDupCharges = 0;
+    iCountSent = 0;
+    iCountRecv = 0;
+    iCountProcessed = 0;
+    iCountSkipped = 0;
+    iProcessedSet.clear();
+    iMsgIdCounter = 100;
+    iCurrentMsgId = `saga-${iMsgIdCounter}-decrease`;
+    document.getElementById('i-next-msgid').textContent = iCurrentMsgId;
+    document.getElementById('i-topic-queue').innerHTML = '';
+    document.getElementById('i-tb-processed').innerHTML = '';
+    iUpdateProdQty(10, 'changed');
+    iUpdateCounters();
+    iResetStepHighlights();
+    iSetResult('— (아직 소비한 메시지 없음)', null);
+    const topic = document.getElementById('i-topic');
+    topic.classList.remove('ready','active');
+    document.getElementById('i-consume-btn').textContent = '▶ 소비 대기';
+    iSetBusy(false);
+    iLog('sys', '리셋 완료. 모드는 현재 ' + (iIdempotencyOn ? 'ON' : 'OFF') + ' 입니다.');
+  }
+
+  function drawIdemArrows() {
+    const svg = document.getElementById('i-arrows');
+    const scene = document.getElementById('scene-idem');
+    if (!svg || !scene) return;
+    svg.innerHTML = '';
+    drawLineInSvg(svg, scene, 'i-producer', 'i-topic');
+    drawLineInSvg(svg, scene, 'i-topic', 'i-consumer');
+    drawLineInSvg(svg, scene, 'i-consumer', 'i-step-1');
+    drawLineInSvg(svg, scene, 'i-step-1', 'i-step-2');
+    drawLineInSvg(svg, scene, 'i-step-2', 'i-step-3');
+  }
+
+  // Wire the consume button
+  document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.getElementById('i-consume-btn');
+    if (btn) btn.addEventListener('click', () => {
+      if (!document.getElementById('i-topic').classList.contains('ready')) return;
+      i_consumeOne();
+    });
+  });
+
+  // ══════════════════════════════════════════════════════════════════
   // Init
   // ══════════════════════════════════════════════════════════════════
   window.addEventListener('load', () => {
     drawK8sArrows();
     drawMsaArrows();
     drawTunnelArrows();
+    drawIdemArrows();
+    // Wire consume button (fallback if DOMContentLoaded already fired)
+    const cbtn = document.getElementById('i-consume-btn');
+    if (cbtn && !cbtn._wired) {
+      cbtn._wired = true;
+      cbtn.addEventListener('click', () => {
+        if (!document.getElementById('i-topic').classList.contains('ready')) return;
+        i_consumeOne();
+      });
+    }
+    iSetMode(true);
+    iUpdateCounters();
     k8sLog('sys', '▷ 쿠버네티스 관점 시뮬레이터: 버튼을 눌러 실험을 시작하세요.');
     mLog('sys', '▷ MSA 비즈니스 시뮬레이터: Happy Path 버튼으로 시작하세요.');
     tLog('sys', '▷ Ingress 터널 시뮬레이터: 단계별 또는 자동 재생 버튼을 눌러보세요.');
+    iLog('sys', '▷ 멱등성 시뮬레이터: "새 메시지" → "동일 재전송" 순으로 클릭 후 ▶ 두 번 소비해보세요.');
   });
   window.addEventListener('resize', () => {
     drawK8sArrows();
     drawMsaArrows();
     drawTunnelArrows();
+    drawIdemArrows();
   });
 </script>
 </body>
