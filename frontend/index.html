@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8"/>
+    <title>chap044 · 고객 화면</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    <style>
+        body { font-family: sans-serif; max-width: 640px; margin: 40px auto; padding: 0 16px; }
+        h1 { border-bottom: 2px solid #444; padding-bottom: 8px; }
+        .row { margin: 12px 0; }
+        input, select, button { padding: 6px 10px; font-size: 14px; }
+        button { cursor: pointer; }
+        #log { background: #111; color: #0f0; padding: 12px; border-radius: 6px; font-family: monospace; white-space: pre-wrap; min-height: 120px; }
+        .ok { color: #0a0; font-weight: bold; }
+        .err { color: #c00; font-weight: bold; }
+    </style>
+</head>
+<body>
+<h1>고객 화면 (chap044)</h1>
+
+<h3>① 로그인</h3>
+<div class="row">
+    <input id="username" placeholder="username" value="ssar"/>
+    <input id="password" placeholder="password" value="1234" type="password"/>
+    <button onclick="doLogin()">로그인</button>
+</div>
+
+<h3>② 주문</h3>
+<div class="row">
+    상품:
+    <select id="productSelect">
+        <option value="1">MacBook Pro (재고 10)</option>
+        <option value="2">iPhone 15 (재고 0 → 실패/보상)</option>
+        <option value="3">AirPods (재고 10)</option>
+    </select>
+    주소: <input id="address" value="Seoul"/>
+    <button onclick="createOrder()">주문하기</button>
+</div>
+
+<h3>로그</h3>
+<div id="log">대기중...</div>
+
+<script>
+    let token = null;
+    let userId = null;
+    let stomp = null;
+    const $ = id => document.getElementById(id);
+    const log = msg => { $('log').textContent += '\n' + msg; };
+
+    // base64url → base64 변환 후 atob (JWT payload 디코딩)
+    function decodeJwt(tk) {
+        const payload = tk.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+        const pad = payload.length % 4 === 0 ? '' : '='.repeat(4 - payload.length % 4);
+        return JSON.parse(atob(payload + pad));
+    }
+
+    async function doLogin() {
+        const res = await fetch('/api/login', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({username: $('username').value, password: $('password').value})
+        });
+        if (!res.ok) { log('❌ 로그인 실패'); return; }
+        const data = await res.json();
+        token = data.token;
+        userId = data.userId;
+        log('✅ 로그인 성공: userId=' + userId);
+        connectWebSocket();
+    }
+
+    function connectWebSocket() {
+        stomp = Stomp.over(new SockJS('/ws'));
+        stomp.debug = null;
+        stomp.connect({}, () => {
+            log('🔌 WebSocket 연결됨, /topic/orders/' + userId + ' 구독');
+            stomp.subscribe('/topic/orders/' + userId, msg => {
+                const data = JSON.parse(msg.body);
+                if (data.status === 'COMPLETED') log('🎉 ' + data.message + ' (orderId=' + data.orderId + ')');
+                else if (data.status === 'CANCELLED') log('💥 ' + data.message + ' (orderId=' + data.orderId + ')');
+                else log('📨 ' + JSON.stringify(data));
+            });
+        });
+    }
+
+    async function createOrder() {
+        if (!token) { log('먼저 로그인하세요'); return; }
+        const body = {
+            productId: parseInt($('productSelect').value, 10),
+            quantity: 1,
+            address: $('address').value
+        };
+        log('📤 주문 요청: ' + JSON.stringify(body));
+        const res = await fetch('/api/orders', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token},
+            body: JSON.stringify(body)
+        });
+        if (!res.ok) { log('❌ 주문 실패'); return; }
+        const order = await res.json();
+        log('🎯 주문 생성됨: orderId=' + order.id + ' (Saga 진행 중, WebSocket 대기...)');
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/workspace/msa/chap044//**)",
+      "Read(//c/workspace/msa//**)"
+    ]
+  }
+}
