@@ -2,7 +2,10 @@
   "permissions": {
     "allow": [
       "Read(//c/workspace/msa/chap044//**)",
-      "Read(//c/workspace/msa//**)"
+      "Read(//c/workspace/msa//**)",
+      "Bash(xargs -I {} bash -c 'echo \"=== {} ===\" && head -40 \"{}\"')",
+      "Bash(xargs -I {} bash -c 'echo \"=== {} ===\" && head -30 \"{}\"')",
+      "Bash(xargs -I {} bash -c 'echo \"=== {} ===\" && cat \"{}\"')"
     ]
   }
 }
