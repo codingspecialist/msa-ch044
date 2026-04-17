@@ -1195,11 +1195,12 @@
       <div class="group-label" style="top:300px; left:14px;">[C] 백엔드 서비스 (각각 Service → Pod 2개)</div>
       <div class="group-label" style="top:490px; left:14px;">[D] 내부 전용 (Orchestrator · Kafka KRaft · DB)</div>
 
-      <!-- Browser (OUTSIDE Node — it's the end user's machine) -->
-      <div class="node browser" id="k-browser" style="top:24px; left:40px; width:130px;">
-        <div class="name">🌐 Browser</div>
-        <div class="role">외부 사용자</div>
+      <!-- Browser + Frontend (OUTSIDE cluster — CDN/로컬) -->
+      <div class="node browser" id="k-browser" style="top:24px; left:40px; width:200px;">
+        <div class="name">🌐 Browser + Frontend</div>
+        <div class="role">외부 (CDN/로컬 static)</div>
         <div class="auth-badge" id="k-browser-auth">🔓 JWT 없음</div>
+        <div style="font-size:9px; color:#6b9fd0; margin-top:4px;">index.html · API_BASE=http://metacoding.local</div>
       </div>
 
       <!-- NodePort strike -->
@@ -1209,24 +1210,21 @@
       </div>
 
       <!-- Ingress Controller Pod (INSIDE Node, in ingress-nginx namespace) -->
-      <div class="node ingress" id="k-ingress" style="top:95px; left:310px; width:270px;">
+      <div class="node ingress" id="k-ingress" style="top:95px; left:310px; width:420px;">
         <div class="name">🚪 Ingress Controller (Pod)</div>
-        <div class="role">Nginx Ingress Controller · hostPort 80/443</div>
-        <div class="port">host: metacoding.local → 규칙 매칭 → ClusterIP Service</div>
+        <div class="role">Nginx Ingress Controller · hostPort 80/443 · CORS enabled</div>
+        <div class="port">host: metacoding.local · path 라우팅 → 각 ClusterIP Service 직접</div>
       </div>
 
-      <!-- Gateway layer label moved below Ingress -->
-      <div class="group-label" style="top:160px; left:14px; color:#6b9fd0;">[C-1] 게이트웨이 레이어</div>
-
-      <!-- Gateway Service + Pods -->
-      <div class="svc-box" id="k-svc-gateway" style="top:160px; left:320px; width:250px; height:125px;">
-        <div class="svc-label">🔀 gateway-service</div>
-        <div class="svc-type">Type: ClusterIP · port 80</div>
-        <div class="svc-pods" style="margin-top:20px;">
-          <div class="pod" id="k-pod-gateway-1">P1</div>
-          <div class="pod" id="k-pod-gateway-2">P2</div>
+      <!-- Ingress Rule summary badge -->
+      <div class="svc-box" id="k-ingress-rules" style="top:170px; left:320px; width:400px; height:110px; border-color:#b1794b; background:rgba(61,42,31,0.3);">
+        <div class="svc-label" style="color:#e5a66e;">📜 Ingress Rules (path 라우팅)</div>
+        <div style="font-size:10px; color:#e5c38f; line-height:1.5; margin-top:6px; font-family:monospace;">
+          /api/login       → user-service:8083<br/>
+          /api/products    → product-service:8082<br/>
+          /api/orders · /ws → order-service:8081<br/>
+          /api/deliveries  → delivery-service:8084
         </div>
-        <div style="font-size:9px; color:#6b9fd0; margin-top:6px;">Deployment replicas=2</div>
       </div>
 
       <!-- Backend services with explicit Service layer -->
@@ -1279,19 +1277,6 @@
         <div style="font-size:10px; color:#6b9fd0; margin-top:10px; line-height:1.35;">
           배송 생성/완료<br/>
           <span style="font-size:9px; color:#4a7eb0;">delivery_tb 담당</span>
-        </div>
-      </div>
-
-      <div class="svc-box" id="k-svc-frontend" style="top:320px; left:788px; width:182px; height:155px;">
-        <div class="svc-label">frontend-service</div>
-        <div class="svc-type">ClusterIP :80</div>
-        <div class="svc-pods" style="margin-top:30px;">
-          <div class="pod" id="k-pod-frontend-1">P1</div>
-          <div class="pod" id="k-pod-frontend-2">P2</div>
-        </div>
-        <div style="font-size:10px; color:#6b9fd0; margin-top:10px; line-height:1.35;">
-          정적 HTML/JS (Nginx)<br/>
-          <span style="font-size:9px; color:#4a7eb0;">Ingress가 / 경로 라우팅</span>
         </div>
       </div>
 
@@ -1375,9 +1360,10 @@
 
     <div style="margin-top:10px; padding:8px; background:rgba(77,168,255,0.1); border-left:3px solid #4da8ff; border-radius:4px; font-size:11px; line-height:1.55;">
       <b>💡 포인트</b><br/>
-      • 외부 요청은 <b>반드시 Ingress</b>를 거칩니다.<br/>
-      • 각 서비스의 <b>Service(점선 박스)</b>가 2개 Pod으로 로드밸런싱 합니다.<br/>
-      • NodePort/LoadBalancer 대신 <b>Ingress</b>로 외부 노출.<br/>
+      • <b>프론트엔드는 클러스터 밖</b> — CDN/로컬 static 서버에서 실행.<br/>
+      • Ingress가 직접 <b>path 기반 라우팅</b>으로 각 백엔드 Service에 꽂습니다 (게이트웨이 서비스 없음).<br/>
+      • CORS는 Ingress annotation에서 일괄 처리.<br/>
+      • 각 서비스의 <b>Service(점선 박스)</b>가 2개 Pod으로 로드밸런싱.<br/>
       • Orchestrator · Kafka · DB는 외부에서 접근 불가(내부 전용).
     </div>
 
@@ -1605,7 +1591,7 @@
     </button>
 
     <div class="controls">
-      <button class="btn btn-happy" id="m-btn-happy" onclick="m_runHappyPath()">▶ 로그인 & 주문 (Happy Path)</button>
+      <button class="btn btn-happy" id="m-btn-happy" onclick="m_runHappyPath()">▶ 주문 (Happy Path)</button>
       <button class="btn btn-fail" id="m-btn-fail" onclick="m_runFailPath()">⚠ 재고부족 (iPhone 15) → 보상</button>
       <button class="btn btn-cancel" id="m-btn-cancel" onclick="m_runCancelPath()">✖ 주문 취소 (배송 후)</button>
       <button class="btn btn-reset" onclick="m_reset()">🔄 리셋</button>
@@ -1613,6 +1599,7 @@
 
     <div style="margin-top:10px; padding:8px; background:rgba(52,211,153,0.1); border-left:3px solid #34d399; border-radius:4px; font-size:11px; line-height:1.55;">
       <b>💡 사용법 & 관찰 포인트</b><br/>
+      • <b>반드시 브라우저의 "로그인" 버튼을 먼저 누르세요</b> (JWT 획득) — 로그인 없이 시나리오 클릭 시 <b>order-service의 JwtVerifier가 401 반환</b><br/>
       • 시나리오 버튼 클릭 → Kafka에 <b>첫 메시지가 적재</b>되며 해당 토픽에 <b>🟡 불이 들어옴</b><br/>
       • 우측 초록 <b>▶ N단계 버튼</b>이 활성화됨 → 클릭할 때마다 한 단계씩 진행<br/>
       • 단계마다 <b>소비→처리→다음 토픽 적재</b>가 순서대로 실행<br/>
@@ -1727,8 +1714,9 @@
         <div class="t-title" style="font-size:11px;">📜 Ingress Rule</div>
         <div class="t-desc" style="font-size:9px; text-align:left; margin-top:4px; font-family:monospace;">
           host: metacoding.local<br/>
-          path: /api → gateway-svc<br/>
-          path: / &nbsp;&nbsp;&nbsp;→ frontend-svc
+          /api/login    → user-svc<br/>
+          /api/orders · /ws → order-svc<br/>
+          /api/products → product-svc
         </div>
       </div>
 
@@ -1740,21 +1728,21 @@
       <!-- ClusterIP Service -->
       <div class="t-card t-svc" id="t-svc"
            style="top:360px; left:540px; width:200px; height:100px;">
-        <div class="t-title" style="color:#a3c7ef;">🔀 gateway-service</div>
+        <div class="t-title" style="color:#a3c7ef;">🔀 user-service (예시)</div>
         <div class="t-desc" style="color:#6b9fd0;">Type: ClusterIP</div>
-        <div class="t-meta" style="color:#6b9fd0;">:80 → Pods</div>
+        <div class="t-meta" style="color:#6b9fd0;">:8083 → Pods</div>
       </div>
 
       <!-- App Pods -->
       <div class="t-card t-pod" id="t-pod-1"
            style="top:380px; left:780px; width:100px; height:60px;">
         <div class="t-title" style="font-size:11px;">Pod P1</div>
-        <div class="t-meta" style="color:#c4d4ec;">gateway</div>
+        <div class="t-meta" style="color:#c4d4ec;">user</div>
       </div>
       <div class="t-card t-pod" id="t-pod-2"
            style="top:380px; left:900px; width:100px; height:60px;">
         <div class="t-title" style="font-size:11px;">Pod P2</div>
-        <div class="t-meta" style="color:#c4d4ec;">gateway</div>
+        <div class="t-meta" style="color:#c4d4ec;">user</div>
       </div>
 
       <!-- Info note on right -->
@@ -2114,13 +2102,11 @@
     const scene = document.getElementById('scene-k8s');
     if (!svg || !scene) return;
     svg.innerHTML = '';
-    // Browser → Ingress
+    // Browser(외부 프론트) → Ingress
     drawLineInSvg(svg, scene, 'k-browser', 'k-ingress');
-    // Ingress → gateway service
-    drawLineInSvg(svg, scene, 'k-ingress', 'k-svc-gateway');
-    // Gateway pods → each backend service (ClusterIP)
-    ['user','product','order','delivery','frontend'].forEach(s => {
-      drawLineInSvg(svg, scene, 'k-svc-gateway', 'k-svc-' + s);
+    // Ingress → 각 백엔드 Service 로 직접 path 라우팅 (게이트웨이 없음)
+    ['user','product','order','delivery'].forEach(s => {
+      drawLineInSvg(svg, scene, 'k-ingress', 'k-svc-' + s);
     });
     // Backend services ↔ Kafka / DB / Orchestrator (internal)
     ['user','product','order','delivery'].forEach(s => {
@@ -2142,15 +2128,11 @@
   }
 
   async function k8sRoute(service, label, color = 'rest') {
-    // Browser → Ingress → gateway-svc → gateway Pod → target service → target Pod
+    // Browser → Ingress(path 매칭) → target Service → target Pod
     await sendPacket('scene-k8s', 'k-browser', 'k-ingress', color, label, 500);
     highlight('k-ingress', 'active');
-    await sendPacket('scene-k8s', 'k-ingress', 'k-svc-gateway', color, '', 500);
-    const gwPod = pickPod('k', 'gateway');
-    pulsePod('k', 'gateway', gwPod, 'active', 800);
-    highlight('k-svc-gateway', 'active');
-    k8sLog('gateway', `gateway-service → gateway Pod${gwPod} 선택 (라운드로빈)`);
-    await sendPacket('scene-k8s', 'k-svc-gateway', 'k-svc-' + service, color, '', 500);
+    k8sLog('ingress', `Ingress: path 규칙 매칭 → ${service}-service`);
+    await sendPacket('scene-k8s', 'k-ingress', 'k-svc-' + service, color, '', 500);
     highlight('k-svc-' + service, 'active');
 
     // pick live pod (skip dead ones if order service)
@@ -2162,7 +2144,7 @@
       podIdx = pickPod('k', service);
     }
     pulsePod('k', service, podIdx, 'active', 900);
-    k8sLog(service === 'order' ? 'order' : (service === 'user' ? 'user' : service === 'product' ? 'product' : 'gateway'),
+    k8sLog(service === 'order' ? 'order' : (service === 'user' ? 'user' : service === 'product' ? 'product' : 'deliv'),
            `${service}-service → ${service} Pod${podIdx} 선택`);
     return podIdx;
   }
@@ -2172,21 +2154,17 @@
     k8sSetBusy(true);
     k8sReqCount++;
     document.getElementById('k-req-count').textContent = k8sReqCount;
-    k8sSetStep('① 로그인 요청 라우팅 (Browser → Ingress → Gateway → User)');
-    k8sLog('sys', '═══ 로그인 요청 시작 (POST /login) ═══');
-    k8sLog('browser', 'Browser → http://metacoding.local/login');
+    k8sSetStep('① 로그인 요청 라우팅 (Browser → Ingress → User)');
+    k8sLog('sys', '═══ 로그인 요청 시작 (POST /api/login) ═══');
+    k8sLog('browser', 'Browser → http://metacoding.local/api/login');
     const userPod = await k8sRoute('user', 'POST', 'login');
     await sleep(400);
     k8sLog('user', `user Pod${userPod}: ssar/1234 검증 → JWT 생성`);
 
-    // Response path: user Pod → user-svc → gateway-svc → Ingress → Browser
-    k8sSetStep('② JWT 응답 경로 (역방향: User → Gateway → Ingress → Browser)');
+    // Response path: user Pod → user-svc → Ingress → Browser
+    k8sSetStep('② JWT 응답 경로 (역방향: User → Ingress → Browser)');
     await sendPacket('scene-k8s', `k-pod-user-${userPod}`, 'k-svc-user', 'login', 'JWT', 500);
-    await sendPacket('scene-k8s', 'k-svc-user', 'k-svc-gateway', 'login', 'JWT', 600);
-    highlight('k-svc-gateway', 'active');
-    const gwRet = (podCursor['k:gateway'] || 1);
-    pulsePod('k', 'gateway', gwRet, 'active', 700);
-    await sendPacket('scene-k8s', 'k-svc-gateway', 'k-ingress', 'login', 'JWT', 500);
+    await sendPacket('scene-k8s', 'k-svc-user', 'k-ingress', 'login', 'JWT', 600);
     highlight('k-ingress', 'active');
     await sendPacket('scene-k8s', 'k-ingress', 'k-browser', 'login', 'JWT', 500);
     highlight('k-browser', 'success');
@@ -2213,25 +2191,20 @@
       k8sLog('err', '═══ 주문 시도: 그러나 로그인 상태가 아님! (JWT 없음) ═══');
       k8sLog('browser', 'Browser → POST /api/orders  (Authorization 헤더 없음)');
       k8sSetStep('❌ 401 Unauthorized — 먼저 로그인하세요!');
-      // Browser → Ingress → Gateway (REST 요청은 도달)
+      // Browser → Ingress(path 매칭) → order-service (REST 요청은 도달)
       await sendPacket('scene-k8s', 'k-browser', 'k-ingress', 'rest', 'POST', 500);
       highlight('k-ingress', 'active');
-      await sendPacket('scene-k8s', 'k-ingress', 'k-svc-gateway', 'rest', '', 500);
-      const gwPod = pickPod('k', 'gateway');
-      pulsePod('k', 'gateway', gwPod, 'active', 700);
-      highlight('k-svc-gateway', 'active');
-      k8sLog('gateway', `gateway Pod${gwPod}: 요청 수신 → order-service로 프록시`);
-      await sendPacket('scene-k8s', 'k-svc-gateway', 'k-svc-order', 'rest', '', 500);
+      k8sLog('ingress', 'Ingress: /api/orders 매칭 → order-service');
+      await sendPacket('scene-k8s', 'k-ingress', 'k-svc-order', 'rest', '', 500);
       const oPodErr = pickPod('k', 'order');
       pulsePod('k', 'order', oPodErr, 'error', 900);
       highlight('k-svc-order', 'error');
-      k8sLog('err', `order Pod${oPodErr}: JwtAuthenticationFilter → JWT 헤더 누락 감지`);
+      k8sLog('err', `order Pod${oPodErr}: JwtVerifier → JWT 헤더 누락 감지`);
       await sleep(300);
       // 역방향 에러 응답
       k8sLog('err', 'order → 401 Unauthorized 응답 반환');
-      await sendPacket('scene-k8s', `k-pod-order-${oPodErr}`, 'k-svc-gateway', 'error', '401', 500);
-      pulsePod('k', 'gateway', gwPod, 'error', 500);
-      await sendPacket('scene-k8s', 'k-svc-gateway', 'k-ingress', 'error', '401', 500);
+      await sendPacket('scene-k8s', `k-pod-order-${oPodErr}`, 'k-svc-order', 'error', '401', 500);
+      await sendPacket('scene-k8s', 'k-svc-order', 'k-ingress', 'error', '401', 500);
       highlight('k-ingress', 'error');
       await sendPacket('scene-k8s', 'k-ingress', 'k-browser', 'error', '401', 500);
       highlight('k-browser', 'error');
@@ -2242,7 +2215,7 @@
 
     k8sLog('sys', '═══ 주문 전체 흐름 시작 (Browser → Ingress → Order → Kafka → Orchestrator → Product → DB → … → WebSocket) ═══');
 
-    // 1) Browser → Ingress → Gateway → Order (REST)
+    // 1) Browser → Ingress(path 매칭) → Order (REST)
     k8sSetStep('① POST /api/orders → Order Pod 도달');
     k8sLog('browser', 'Browser → POST /api/orders');
     const oPod = await k8sRoute('order', 'POST', 'rest');
@@ -2338,10 +2311,9 @@
 
     // WebSocket push back through Ingress → Browser
     k8sSetStep('⑪ WebSocket 푸시: Order → Ingress → Browser');
-    k8sLog('ws', 'order: WebSocket /topic/orders/1 → Browser (Ingress를 통한 WS 터널)');
-    await sendPacket('scene-k8s', `k-pod-order-${oPod}`, 'k-svc-gateway', 'websocket', '📢', 600);
-    pulsePod('k', 'gateway', (podCursor['k:gateway']||1), 'active', 600);
-    await sendPacket('scene-k8s', 'k-svc-gateway', 'k-ingress', 'websocket', '📢', 500);
+    k8sLog('ws', 'order: WebSocket /topic/orders/1 → Browser (Ingress /ws 터널)');
+    await sendPacket('scene-k8s', `k-pod-order-${oPod}`, 'k-svc-order', 'websocket', '📢', 600);
+    await sendPacket('scene-k8s', 'k-svc-order', 'k-ingress', 'websocket', '📢', 500);
     highlight('k-ingress', 'active');
     await sendPacket('scene-k8s', 'k-ingress', 'k-browser', 'websocket', '📢', 500);
     highlight('k-browser', 'success');
@@ -2477,11 +2449,10 @@
           break;
         }
         case 11: {
-          k8sSetStep('⑪/⑪ WebSocket 푸시: Order → Gateway → Ingress → Browser');
-          k8sLog('ws', 'order: WebSocket /topic/orders/1 → Browser (Ingress WS 터널)');
-          await sendPacket('scene-k8s', `k-pod-order-${s.oPod}`, 'k-svc-gateway', 'websocket', '📢', 600);
-          pulsePod('k', 'gateway', (podCursor['k:gateway']||1), 'active', 600);
-          await sendPacket('scene-k8s', 'k-svc-gateway', 'k-ingress', 'websocket', '📢', 500);
+          k8sSetStep('⑪/⑪ WebSocket 푸시: Order → Ingress → Browser');
+          k8sLog('ws', 'order: WebSocket /topic/orders/1 → Browser (Ingress /ws 터널)');
+          await sendPacket('scene-k8s', `k-pod-order-${s.oPod}`, 'k-svc-order', 'websocket', '📢', 600);
+          await sendPacket('scene-k8s', 'k-svc-order', 'k-ingress', 'websocket', '📢', 500);
           highlight('k-ingress', 'active');
           await sendPacket('scene-k8s', 'k-ingress', 'k-browser', 'websocket', '📢', 500);
           highlight('k-browser', 'success');
@@ -2513,15 +2484,13 @@
       document.getElementById('k-req-count').textContent = k8sReqCount;
       k8sLog('browser', 'Browser → POST /api/orders  (Authorization 헤더 없음)');
       await sendPacket('scene-k8s', 'k-browser', 'k-ingress', 'rest', 'POST', 400);
-      await sendPacket('scene-k8s', 'k-ingress', 'k-svc-gateway', 'rest', '', 400);
-      const gwPod = pickPod('k', 'gateway');
-      pulsePod('k', 'gateway', gwPod, 'active', 500);
-      await sendPacket('scene-k8s', 'k-svc-gateway', 'k-svc-order', 'rest', '', 400);
+      highlight('k-ingress', 'active');
+      await sendPacket('scene-k8s', 'k-ingress', 'k-svc-order', 'rest', '', 400);
       const oPodErr = pickPod('k', 'order');
       pulsePod('k', 'order', oPodErr, 'error', 700);
-      k8sLog('err', `order Pod${oPodErr}: JwtAuthenticationFilter → JWT 누락 → 401 반환`);
-      await sendPacket('scene-k8s', `k-pod-order-${oPodErr}`, 'k-svc-gateway', 'error', '401', 400);
-      await sendPacket('scene-k8s', 'k-svc-gateway', 'k-ingress', 'error', '401', 400);
+      k8sLog('err', `order Pod${oPodErr}: JwtVerifier → JWT 누락 → 401 반환`);
+      await sendPacket('scene-k8s', `k-pod-order-${oPodErr}`, 'k-svc-order', 'error', '401', 400);
+      await sendPacket('scene-k8s', 'k-svc-order', 'k-ingress', 'error', '401', 400);
       await sendPacket('scene-k8s', 'k-ingress', 'k-browser', 'error', '401', 400);
       highlight('k-browser', 'error');
       k8sLog('err', '✗ 모든 요청이 401로 차단됨 — 로드밸런싱 관찰 불가');
@@ -2639,6 +2608,7 @@
 
   let mBusy = false;
   let mStepBusy = false;
+  let mLoggedIn = false;   // 로그인 상태 (false면 order-service가 JWT 없다고 401 반환)
   let mKafkaCount = 0;
   let mOrderCounter = 3; // 이미 3개 주문 있었다고 가정 → 새 주문 id는 4부터
 
@@ -2655,6 +2625,9 @@
       document.getElementById(id).disabled = b;
     });
     document.getElementById('m-order-btn').disabled = b;
+    // 로그인 버튼: busy일 때 또는 이미 로그인된 경우 disabled
+    const lb = document.getElementById('m-login-btn');
+    if (lb) lb.disabled = b || mLoggedIn;
   }
 
   function mEnqueue(topic) {
@@ -2890,16 +2863,20 @@
     drawLineInSvg(svg, scene, 'm-browser', 'm-ws-comp', wsClass);
   }
 
-  // Animate login sequence (common to Happy/Fail/Cancel)
+  // Animate login sequence (idempotent — skip if already logged in)
   async function m_doLogin() {
+    if (mLoggedIn) {
+      // 이미 로그인되어 있으면 애니메이션 생략, 기존 pod만 선택
+      return pickPod('m', 'order');
+    }
     mShowScreen('login');
     mSetWs(false);
-    mLog('browser', 'Browser: 로그인 폼 제출 → POST /login');
+    mLog('browser', 'Browser: 로그인 폼 제출 → POST /api/login');
 
     await sendPacket('scene-msa', 'm-browser', 'm-user', 'login', 'POST', 700);
     const uPod = pickPod('m', 'user');
     pulsePod('m', 'user', uPod, 'active', 900);
-    mLog('user', `User Pod ${uPod}: ssar/1234 검증 → JWT 발급 (sub=1)`);
+    mLog('user', `User Pod ${uPod}: ssar/1234 검증 → JWT 발급 (sub=1, HMAC512)`);
     await sleep(600);
     await sendPacket('scene-msa', 'm-user', 'm-browser', 'login', 'JWT', 600);
     mLog('browser', 'Browser: JWT 수신, localStorage 저장');
@@ -2910,21 +2887,47 @@
     await sleep(300);
 
     // WebSocket connect → Order 서비스의 WebSocketHandler가 세션 수립
-    mLog('browser', 'Browser: WebSocket 연결 시도 (/api/ws/orders)');
+    mLog('browser', 'Browser: WebSocket 연결 시도 (/ws)');
     await sendPacket('scene-msa', 'm-browser', 'm-ws-comp', 'websocket', 'WS', 600);
     highlight('m-ws-comp', 'active', 1000);
     const oPod = pickPod('m', 'order');
     pulsePod('m', 'order', oPod, 'active', 900);
     mLog('order', `Order Pod ${oPod}: WebSocketHandler가 세션 확립 → /topic/orders/1 구독`);
     mSetWs(true);
+    mLoggedIn = true;
+    // 로그인 버튼 UI 업데이트
+    const lb = document.getElementById('m-login-btn');
+    if (lb) { lb.textContent = '✅ 로그인됨'; lb.disabled = true; }
     return oPod;
+  }
+
+  // 로그인 안 된 상태에서 주문 시도 → order-service(JwtVerifier)가 401 반환
+  async function m_loginGuard() {
+    mShowScreen('login');
+    mLog('sys', '═══ ⚠ 인증 체크 (JwtVerifier) ═══');
+    mSetStatus('error', '❌ 로그인 필요');
+    mLog('browser', 'Browser: POST /api/orders (Authorization 헤더 없음)');
+    await sendPacket('scene-msa', 'm-browser', 'm-order', 'error', 'POST', 700);
+    const oPod = pickPod('m', 'order');
+    pulsePod('m', 'order', oPod, 'error', 1100);
+    mLog('err', `Order Pod ${oPod}: JwtVerifier — Authorization 헤더 없음 → 인증 실패`);
+    mLog('err', `Order Pod ${oPod}: OrderController.authenticate() → throw 401 Unauthorized`);
+    await sleep(700);
+    await sendPacket('scene-msa', 'm-order', 'm-browser', 'error', '401', 700);
+    mLog('err', 'Browser: 401 Unauthorized 수신 → 로그인 필요');
+    mSetStep('⚠ 인증 실패 — 먼저 "로그인" 버튼을 눌러주세요');
   }
 
   async function m_runHappyPath() {
     if (mBusy) return;
     mSetBusy(true);
+    if (!mLoggedIn) {
+      await m_loginGuard();
+      mSetBusy(false);
+      return;
+    }
     mLog('sys', '═══ Happy Path 시작 ═══');
-    mSetStep('① 로그인 + WebSocket 연결');
+    mSetStep('① 로그인된 세션으로 주문 요청');
 
     const oPod = await m_doLogin();
 
@@ -3042,8 +3045,13 @@
   async function m_runFailPath() {
     if (mBusy) return;
     mSetBusy(true);
+    if (!mLoggedIn) {
+      await m_loginGuard();
+      mSetBusy(false);
+      return;
+    }
     mLog('sys', '═══ Fail Path 시작: iPhone 15 (재고 0) 주문 ═══');
-    mSetStep('① 로그인 + WebSocket 연결');
+    mSetStep('① 로그인된 세션으로 주문 요청');
     const oPod = await m_doLogin();
 
     // Initial order
@@ -3116,8 +3124,13 @@
   async function m_runCancelPath() {
     if (mBusy) return;
     mSetBusy(true);
+    if (!mLoggedIn) {
+      await m_loginGuard();
+      mSetBusy(false);
+      return;
+    }
     mLog('sys', '═══ Cancel Path: 배송 생성 후 사용자가 주문 취소 ═══');
-    mSetStep('① 로그인 + WebSocket 연결');
+    mSetStep('① 로그인된 세션으로 취소 요청');
     const oPod = await m_doLogin();
 
     // Quick setup: pre-create the order/delivery so we can focus on cancel steps
@@ -3193,6 +3206,10 @@
     mSetStep('대기중');
     mSetBusy(false);
     mOrderCounter = 3;
+    // 로그인 상태 리셋
+    mLoggedIn = false;
+    const lb = document.getElementById('m-login-btn');
+    if (lb) { lb.textContent = '로그인'; lb.disabled = false; }
     // Reset DB
     mUpdateCell('c-prod-1-qty', 10, 'changed');
     mUpdateCell('c-prod-2-qty', 0, 'changed');
@@ -3203,8 +3220,8 @@
     // Reset browser screen
     mShowScreen('login');
     mSetWs(false);
-    mSetStatus('idle', '주문을 해보세요');
-    mLog('sys', '리셋 완료. 시나리오 버튼을 눌러주세요.');
+    mSetStatus('idle', '먼저 로그인하세요');
+    mLog('sys', '리셋 완료. 먼저 브라우저에서 "로그인" 버튼을 눌러주세요.');
   }
 
   // ══════════════════════════════════════════════════════════════════
@@ -3311,7 +3328,7 @@
         tMarkStep(6, 'active');
         highlight('t-rule', 'active', 1200);
         await sendPacket('scene-tunnel', 't-ingress', 't-rule', 'rest', 'host?', 600);
-        tLog('ingress', 'rule: host=metacoding.local, path=/api → gateway-service:80');
+        tLog('ingress', 'rule: host=metacoding.local, path=/api/login → user-service:8083');
         await sleep(400);
         highlight('t-svc', 'active', 1200);
         await sendPacket('scene-tunnel', 't-rule', 't-svc', 'rest', '', 600);
@@ -3327,7 +3344,7 @@
         const podId = `t-pod-${podIdx}`;
         highlight(podId, 'active', 1200);
         await sendPacket('scene-tunnel', 't-svc', podId, 'rest', 'P'+podIdx, 600);
-        tLog('rest', `gateway-pod-${podIdx}: 요청 처리 (200 OK)`);
+        tLog('rest', `user-pod-${podIdx}: 요청 처리 (200 OK)`);
         await sleep(400);
         // Response path: animate back to browser briefly
         highlight(podId, 'success', 800);
@@ -3669,13 +3686,28 @@
     drawLineInSvg(svg, scene, 'i-step-2', 'i-step-3');
   }
 
-  // Wire the consume button
+  // Wire the consume button + MSA 로그인 버튼
   document.addEventListener('DOMContentLoaded', () => {
     const btn = document.getElementById('i-consume-btn');
     if (btn) btn.addEventListener('click', () => {
       if (!document.getElementById('i-topic').classList.contains('ready')) return;
       i_consumeOne();
     });
+    // MSA 시나리오의 로그인 버튼 → 독립적으로 로그인 수행
+    const loginBtn = document.getElementById('m-login-btn');
+    if (loginBtn && !loginBtn._wired) {
+      loginBtn._wired = true;
+      loginBtn.addEventListener('click', async () => {
+        if (mBusy) return;
+        if (mLoggedIn) { mLog('sys', '이미 로그인되어 있습니다.'); return; }
+        mSetBusy(true);
+        mLog('sys', '═══ 로그인 ═══');
+        mSetStep('① 로그인 요청 (POST /api/login)');
+        await m_doLogin();
+        mSetStep('✅ 로그인 완료 — 이제 주문 버튼을 누르세요');
+        mSetBusy(false);
+      });
+    }
   });
 
   // ══════════════════════════════════════════════════════════════════
@@ -3698,7 +3730,7 @@
     iSetMode(true);
     iUpdateCounters();
     k8sLog('sys', '▷ 쿠버네티스 관점 시뮬레이터: 버튼을 눌러 실험을 시작하세요.');
-    mLog('sys', '▷ MSA 비즈니스 시뮬레이터: Happy Path 버튼으로 시작하세요.');
+    mLog('sys', '▷ MSA 비즈니스 시뮬레이터: 먼저 브라우저의 "로그인" 버튼을 누르고 시나리오를 실행하세요.');
     tLog('sys', '▷ Ingress 터널 시뮬레이터: 단계별 또는 자동 재생 버튼을 눌러보세요.');
     iLog('sys', '▷ 멱등성 시뮬레이터: "새 메시지" → "동일 재전송" 순으로 클릭 후 ▶ 두 번 소비해보세요.');
   });

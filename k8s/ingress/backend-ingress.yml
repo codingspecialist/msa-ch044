@@ -1,0 +1,64 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: backend-ingress
+  namespace: metacoding
+  annotations:
+    # ---- CORS (프론트엔드가 외부에서 호출) ----
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, PUT, DELETE, OPTIONS"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "Authorization, Content-Type, X-Requested-With"
+    nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
+    # ---- WebSocket (SockJS / STOMP) ----
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+spec:
+  rules:
+    - host: metacoding.local
+      http:
+        paths:
+          # 로그인 · JWT 발급
+          - path: /api/login
+            pathType: Prefix
+            backend:
+              service:
+                name: user-service
+                port:
+                  number: 8083
+
+          # 상품 · 재고
+          - path: /api/products
+            pathType: Prefix
+            backend:
+              service:
+                name: product-service
+                port:
+                  number: 8082
+
+          # 주문 (JWT 검증은 order-service 내부)
+          - path: /api/orders
+            pathType: Prefix
+            backend:
+              service:
+                name: order-service
+                port:
+                  number: 8081
+
+          # 배송 (관리자)
+          - path: /api/deliveries
+            pathType: Prefix
+            backend:
+              service:
+                name: delivery-service
+                port:
+                  number: 8084
+
+          # WebSocket (SockJS) — order-service
+          - path: /ws
+            pathType: Prefix
+            backend:
+              service:
+                name: order-service
+                port:
+                  number: 8081
