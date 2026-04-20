@@ -4,7 +4,7 @@ metadata:
   name: orchestrator-deploy
   namespace: metacoding
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: orchestrator
